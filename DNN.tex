@@ -1,0 +1,102 @@
+\documentclass{article}
+\usepackage{times}
+\usepackage{graphicx}
+
+\begin{document}
+
+    \title{Technical Details on Neural Net Analysis of Calorimeter Images}
+    \author{Matt Zhang, Wei Wei}
+    \date{}
+    \maketitle
+
+    \section*{Features}
+
+    We have found good performance results from using a dense neural network on ECAL and HCAL slices. Starting with a 25x25x25 ECAL window and a 5x5x60 HCAL window, we first begin by flattening both calorimeter slices into a single one-dimensional input array. A rectified linear unit (relu) is applied directly to the input. (EDIT: this makes no sense and was a mistake. I should rerun the hyperparameter scan without this, and also add dropout to the input layer)
+
+    Following this, we place between one and five hidden layers with either 10, 30, or 50 neurons each. Each layer is followed by a relu function and a droout layer. The dropout rate of each dropout layer is either 10%, 30%, or 50%.
+
+    \section*{Hyperparameter Scan}
+
+    A hyperparameter scan was ran over all combinations of these settings. The hyperparameter scan also looked at different values of learning rate (0.001, 0.01, or 0.1) and learning decay rate (0.001 or 0.01), in order to determine how these parameters would affect training speed and final accuracy.
+
+    \begin{figure}
+        \begin{center}
+            \includegraphics{images/cat-thumb.jpeg}
+        \end{center}
+        \caption{BDT test accuracies for a hyperparameter scan over depth and nEstimators. The learning rate is fixed at 0.1.}
+        \label{BDTscan1}
+    \end{figure}
+
+    \begin{figure}
+        \begin{center}
+            \includegraphics{images/cat-thumb.jpeg}
+        \end{center}
+        \caption{BDT test accuracies for a hyperparameter scan over learning rate and nEstimators. The maximum depth is fixed at 5.}
+        \label{BDTscan2}
+    \end{figure}
+
+    \subsection*{Photon vs. Neutral Pion}
+
+    The ROC for the best hyperparmeter point at <point> is shown in Figure~\ref{BDTROC_photon}, and the photon vs. neutral pion discrimination at that point is shown in Figure~\ref{BDTdiscrimination_photon}. Finally, the features with highest discriminating power are shown in Figure~\ref{BDTfeatures_photon}.
+
+    \begin{figure}
+        \begin{center}
+            \includegraphics{images/cat-thumb.jpeg}
+        \end{center}
+        \caption{ROC for BDT trained at best hyperparameter point.}
+        \label{BDTROC_photon}
+    \end{figure}
+
+    \begin{figure}
+        \begin{center}
+            \includegraphics{images/cat-thumb.jpeg}
+        \end{center}
+        \caption{BDT response for electrons vs. charged pions. Test and training curves match up, showing no overtraining.}
+        \label{BDTdiscrimination_photon}
+    \end{figure}
+
+    \begin{figure}
+        \begin{center}
+            \includegraphics{images/cat-thumb.jpeg}
+        \end{center}
+        \caption{Discrimination power of BDT features, ranked in order of importance.}
+        \label{BDTfeatures_photon}
+    \end{figure}
+
+    \subsection*{Electron vs. Charged Pion}
+
+    The ROC for the best hyperparmeter point is shown in Figure~\ref{BDTROC_electron}, and the electron vs. charged pion discrimination at that point is shown in Figure~\ref{BDTdiscrimination_electron}. The features with highest discriminating power are shown in Figure~\ref{BDTfeatures_electron}. Note that n-subjettiness features are not included in this classification task.
+
+    \begin{figure}
+        \begin{center}
+            \includegraphics{images/cat-thumb.jpeg}
+        \end{center}
+        \caption{ROC for BDT trained at best hyperparameter point.}
+        \label{BDTROC_electron}
+    \end{figure}
+
+    \begin{figure}
+        \begin{center}
+            \includegraphics{images/cat-thumb.jpeg}
+        \end{center}
+        \caption{BDT response for electrons vs. charged pions. Test and training curves match up, showing no overtraining.}
+        \label{BDTdiscrimination_electron}
+    \end{figure}
+
+    \begin{figure}
+        \begin{center}
+            \includegraphics{images/cat-thumb.jpeg}
+        \end{center}
+        \caption{Discrimination power of BDT features, ranked in order of importance.}
+        \label{BDTfeatures_electron}
+    \end{figure}
+
+    \clearpage
+    \begin{thebibliography}{9}
+
+        \bibitem{nsub} https://arxiv.org/pdf/1011.2268.pdf
+        \bibitem{anti-kt} https://arxiv.org/pdf/hep-ph/9305266.pdf
+
+    \end{thebibliography}
+
+\end{document}
