@@ -1,0 +1,44 @@
+\documentclass{article}
+\usepackage{times}
+\usepackage{graphicx}
+
+\begin{document}
+
+    \title{Sample Preparation}
+    \author{Matt Zhang, Wei Wei}
+    \date{}
+    \maketitle
+
+    \section*{Initial Samples}
+
+    Information on how we generated our samples, and the technical details involved, were given earlier in the paper. We note here only that we take a 25x25x25 ECAL window and a 5x5x60 HCAL window around the epicenter of each particle deposition event in the calorimeters. The averaged responses of each type of particle are shown in Figure~\ref{averagedParticles}. Examples of individual events for each particle type are shown in Figure~\ref{singleParticles}.
+
+    \begin{figure}
+        \begin{center}
+            \includegraphics{images/cat-thumb.jpeg}
+        \end{center}
+        \caption{The average particle shower shape in ECAL and HCAL.}
+        \label{averagedParticles}
+    \end{figure}
+
+    \begin{figure}
+        \begin{center}
+            \includegraphics{images/cat-thumb.jpeg}
+        \end{center}
+        \caption{Examples of individual particle showers in ECAL and HCAL.}
+        \label{singleParticles}
+    \end{figure}
+
+    \subsection*{Sample Preparation}
+
+    In order to both create a more challenging classification task, and to more closely mimic the coarse-grained calorimeters present in current detectors such as ATLAS, we have downsampled the ECAL in our samples to have a shape of 5x5x25. In other words, we have rough-binned our calorimeter images by taking the sums over 5x5 windows. Sample events corresponding to the ones shown in Figure~\ref{singleParticles} are shown in Figure~\ref{singleParticlesRough}. Furthermore, in order to create a more challenging classification task, we have chosen only pion events which are likely to be confused with either electrons or photons. For charged pion events, this meant taking events where the total energy deposited in the ECAL was at least five times greater than the energy deposited in HCAL. For neutral pions, this meant taking events where pions decayed into two photons with an opening angle of less than 0.01 radians.
+
+    \begin{figure}
+        \begin{center}
+            \includegraphics{images/cat-thumb.jpeg}
+        \end{center}
+        \caption{Examples of individual particle showers in ECAL and HCAL after rough-binning.}
+        \label{singleParticlesRough}
+    \end{figure}
+
+\end{document}
