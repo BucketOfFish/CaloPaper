@@ -1,0 +1,97 @@
+\documentclass{article}
+\usepackage{times}
+\usepackage{graphicx}
+
+\begin{document}
+
+    \title{Machine Learning for Single-Particle Identification in Calorimeter Images}
+    \author{Us}
+    \date{}
+    \maketitle
+
+    \section*{Overview}
+
+    In recent years, many machine learning techniques have started being applied to the realm of high-energy physics. Due to very high volumes of data being generated at colliders such as the LHC, and the complexity involved in reconstructing each collision event, machine learning has seen success in applications such as track reconstruction [cite], vertex-finding [cite], and jet identification [cite].
+
+    The next generation of detectors currently under development often feature an increase in granularity of the electromagnetic and hadronic calorimeters. This increased granularity would turn the calorimeters into 3D pixelated detectors. An example of this is the highly granular CALICE sampling calorimeter proposed for the ILC. This improved detector design provides an excellent opportunity for applying machine learning algorithms for identifying particles and measuring their energy, as well as using these results to generate events in Monte Carlo simulation.  
+    In this paper, we demonstrate the use of various machine-learning techniques for the three mentioned tasks, using simulated calorimeter deposition data from the CLIC detector [cite]. In particular, we demonstrate improvements with convolutional neural networks (CNNs) over standard algorithms for discriminating between electrons and charged pions, and between photons and neutral pions. We also demonstrate the ability to accurately determine the energies of such particles using regression networks (RNs), and the use of generative adversarial networks (GANs) to quickly create such events in simulation.
+
+    The benefits of improved object identification in collision data is twofold. First, by increasing the accuracy with which we can discriminate between signal and background events, we increase the sensitivity of physics searches without having to gather more data. Since a reduction in object identification uncertainty of 50\% is roughly equivalent to gathering four times as much data, the potential benefits are quite significant. Furthermore, by increasing accuracy for low-energy particles, we are able to push certain searches down into lower $\Delta m$ regions.
+
+    \section*{Dataset}
+
+    The study is carried on using the{\tt CaloImaging} dataset~\cite{caloimage}, publicly available from the CERN OpenData portal. The {\tt CaloImaging} dataset consists of about 1M events each of photons, electrons, charged pions, and neutral pions, traveling through a particle tracker and impacting the barrel of the electromagnetic calorimeter (ECAL) and eventually showering up to the hadronic calorimeter (HCAL). The detector geometry is inspired to the detector concept design for the of the CLIC detector~\cite{CLIC}. Particles are shot orthogonally to the calorimeter surface, with energy between 10 and 510 GeV. Events are generated using the GEANT4~\cite{GEANT} detector simulation. More details on the dataset can be found in Ref.~\cite{caloimage}. 
+
+    Events are stored in compressed HDF5 files. Two 3D arrays of numbers are stored, with shape 25x25x25 and 4x4x60, containing the energy deposited, respectively, in the ECAL and HCAL cells around the barycenter of the energy deposit. Some truth information is also stored, such as pdgID of the particle, and the opening angle for $\pi_0 \forwardarrow \gamma\gamma$ when it occurs.
+
+    In order to both create a more challenging classification task, and to more closely mimic the coarse-grained calorimeters present in current detectors such as ATLAS, we have downsampled the ECAL in our samples to have a shape of 5x5x25. In other words, we have rough-binned our calorimeter images by taking the sums over 5x5 windows. Sample events corresponding to the ones shown in Figure~\ref{singleParticles} are shown in Figure~\ref{singleParticlesRough}. Furthermore, in order to create a more challenging classification task, we have chosen only pion events which are likely to be confused with either electrons or photons. For charged pion events, this meant taking events where the total energy deposited in the ECAL was at least five times greater than the energy deposited in HCAL. For neutral pions, this meant taking events where pions decayed into two photons with an opening angle of less than 0.01 radians.
+
+    \begin{figure}
+        \begin{center}
+            \includegraphics{images/cat-thumb.jpeg}
+        \end{center}
+        \caption{Examples of individual particle showers in ECAL and HCAL after rough-binning.}
+        \label{singleParticlesRough}
+    \end{figure}
+
+    \section*{Classification}
+
+    We use boosted decision trees (BDTs) as a proxy for traditional feature-based analysis on calorimeter data. This provides a baseline against which to compare the results of neural net performance. All features used in the BDT are calculated using traditional methods. The complete list of features we use is as follows:
+
+    \begin{itemize}
+        \item total energy deposited in ECAL
+        \item total number of hits registered in ECAL
+        \item the ratio of energy deposited in ECAL first layer over energy deposited in second layer
+        \item the ratio of energy deposited in ECAL first layer over all ECAL energy
+        \item 1st through 6th moments in the x, y, and z dimensions for ECAL energy deposits
+        \item all equivalent features for HCAL
+        \item ratio of HCAL to ECAL energy
+        \item ratio of number of hits in HCAL to ECAL
+        \item n-subjettiness measures
+    \end{itemize}
+
+    We have included several n-subjettiness measures here mostly to help distinguish between (1) photons and (2) neutral pions which have split into two photons with a very small opening angle (below 0.01 radians). Specifically, we use the n-subjettiness algorithm \cite{nsub} to calculate $\tau_1$, $\tau_2$, and $\tau_3$, as well as their ratios $\tau_2/\tau_1$ and $\tau_3/\tau_2$. These features measure how well energy depositions are described as belonging to either one, two, or three jets. These jets are calculated with a modified version of the exclusive anti-kT algorithm \cite{anti-kt}, based on treating individual calorimeter hits as small subjets originating from the interaction point, and subsequently combining them into larger jets. In this modified version of exclusive anti-kT, since we are ignoring the possibility of beam jets, we force the algorithm to continue combination until exactly N jets are left, removing the ability to terminate calculation early.
+
+    After optimizing via a hyperparameter scan, we settled on a BDT with $<features>$. The ROC for the best hyperparmeter point at <point> is shown in Figure~\ref{BDTROC}, and the photon vs. neutral pion discrimination at that point is shown in Figure~\ref{BDTdiscrimination_photon}. Finally, the features with highest discriminating power are shown in Figure~\ref{BDTfeatures_photon}.
+
+    \begin{figure}
+        \begin{center}
+            \includegraphics{images/cat-thumb.jpeg}
+        \end{center}
+        \caption{ROC for BDT trained at best hyperparameter point for (left) photon vs. pi0 and (right) electron vs. charged pion.}
+        \label{BDTROC}
+    \end{figure}
+
+    \begin{figure}
+        \begin{center}
+            \includegraphics{images/cat-thumb.jpeg}
+        \end{center}
+        \caption{BDT response for (left) photon vs. pi0 and (right) electron vs. charged pion. Test and training curves match up, showing no overtraining.}
+        \label{BDTdiscrimination}
+    \end{figure}
+
+    \begin{figure}
+        \begin{center}
+            \includegraphics{images/cat-thumb.jpeg}
+        \end{center}
+        \caption{Discrimination power of BDT features for (left) photon vs. pi0 and (right) electron vs. charged pion, ranked in order of importance.}
+        \label{BDTfeatures}
+    \end{figure}
+
+    We have found good performance results from using a dense neural network (DNN) on ECAL and HCAL slices. Starting with a 25x25x25 ECAL window and a 5x5x60 HCAL window, we first begin by flattening both calorimeter slices into a single one-dimensional input array. Following this, we place X hidden layers with Y neurons each, where these numbers were chosen with a hyperparameter scan. Each layer is followed by a relu function and a dropout layer with rate of Z. The dropout rate was also determined via a hyperparameter scan.
+
+    \section*{Energy Regression}
+
+    \section*{GAN Generation}
+
+    \section*{Conclusion}
+
+    \clearpage
+    \begin{thebibliography}{9}
+
+        \bibitem{nsub} https://arxiv.org/pdf/1011.2268.pdf
+        \bibitem{anti-kt} https://arxiv.org/pdf/hep-ph/9305266.pdf
+
+    \end{thebibliography}
+
+\end{document}
